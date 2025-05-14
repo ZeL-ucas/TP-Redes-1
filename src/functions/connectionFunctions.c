@@ -62,7 +62,7 @@ void AddrToString(const struct sockaddr *addr, char *str, size_t strsize) {
     } else if (addr->sa_family == AF_INET6) {
         version = 6;
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)addr;
-        if (!inet_ntop(AF_INET, &(addr6->sin6_addr), addrstr,
+        if (!inet_ntop(AF_INET6, &(addr6->sin6_addr), addrstr,
                        INET6_ADDRSTRLEN + 1)) {
             LogExit("ntop");
         }
@@ -94,7 +94,7 @@ int ServerSockaddrInit(const char *proto, const char *portstr,
 
     } else if (strcmp(proto, "v6") == 0) {
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)storage;
-        addr6->sin6_family = AF_INET;
+        addr6->sin6_family = AF_INET6;
         addr6->sin6_addr = in6addr_any;
         addr6->sin6_port = port;
 

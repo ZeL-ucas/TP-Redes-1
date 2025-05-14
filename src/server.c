@@ -29,6 +29,12 @@ int main(int argc, char **argv) {
     if (s == -1) {
         LogExit("socket");
     }
+    // permite reutilizar o endereço mesmo c ja tiver sido usado
+    int enable = 1; 
+    if(setsockopt(s,SOL_SOCKET,SO_REUSEADDR, &enable, sizeof(int))!=0){
+        LogExit("setsocketopt");
+    }
+
     struct sockaddr *addr = (struct sockaddr *)(&storage);
     // bind->listen->accept
     if (bind(s, addr, sizeof(storage)) != 0) {
