@@ -13,5 +13,4 @@
  */
 void EnumToString( GameMessage *currentMessage);
 
-
-int CheckError (int value);
+void PlayGame (GameMessage *message);

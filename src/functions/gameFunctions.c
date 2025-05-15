@@ -38,6 +38,8 @@ void EnumToString(GameMessage *currentMessage) {
         break;
     }
 }
-int CheckError(int value ){
-    return !(value <=4 || value >=0) ;
+
+void PlayGame(GameMessage *message) {
+    int serverNumber = rand() %5;
+
 }

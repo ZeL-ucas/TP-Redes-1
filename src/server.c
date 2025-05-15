@@ -5,8 +5,8 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
-
 #define BUFSZ 1024
 
 void Usage(int argc, char **argv) {
@@ -20,7 +20,8 @@ int main(int argc, char **argv) {
         Usage(argc, argv);
     }
     struct sockaddr_storage storage;
-
+    // faz com que cada gameplay tenha numeros aleatorios sem repetir
+    srand(time(NULL));
     if (ServerSockaddrInit(argv[1], argv[2], &storage) != 0) {
         Usage(argc, argv);
     }
@@ -67,24 +68,29 @@ int main(int argc, char **argv) {
     mainMessage.type = MSG_REQUEST;
 
     while (1) {
-    EnumToString(&mainMessage);
-            send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+        EnumToString(&mainMessage);
+        send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
 
-        
-
-     recv(clientSocket, &mainMessage, BUFSZ - 1, 0);
-        switch (mainMessage.type){
+        recv(clientSocket, &mainMessage, BUFSZ - 1, 0);
+        switch (mainMessage.type) {
         case 1:
-            CheckError(mainMessage.client_action);
+            if (!(mainMessage.client_action <= 4 &&
+                  mainMessage.client_action >= 0)) {
+                BuildErrorMessageResponse();
+            };
+
             break;
         case 4:
+            if (!(mainMessage.client_action <= 1 &&
+                  mainMessage.client_action >= 0)) {
+                BuildErrorMessageResponse();
+            };
             break;
         default:
             LogExit("Comunication Error");
         }
-        
-        printf("%s\n", mainMessage.message);
 
+        printf("%s\n", mainMessage.message);
     }
 
     exit(EXIT_SUCCESS);
