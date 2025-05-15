@@ -1,4 +1,5 @@
 #include "headers/connectionFunctions.h"
+#include "headers/gameFunctions.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,19 +61,30 @@ int main(int argc, char **argv) {
     if (clientSocket == -1) {
         LogExit("accept");
     }
-    printf("Client Conectado\n");
-    char buf[BUFSIZ];
-    while (1) {
+    printf("Cliente Conectado\n");
+    printf("Apresentando as opções para o cliente.\n");
+    GameMessage mainMessage;
+    mainMessage.type = MSG_REQUEST;
 
-        memset(buf, 0, BUFSZ);
-        ssize_t count = recv(clientSocket, buf, BUFSZ - 1, 0);
-        if (count <= 0) {
-            LogExit("recv");
+    while (1) {
+    EnumToString(&mainMessage);
+            send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+
+        
+
+     recv(clientSocket, &mainMessage, BUFSZ - 1, 0);
+        switch (mainMessage.type){
+        case 1:
+            CheckError(mainMessage.client_action);
+            break;
+        case 4:
+            break;
+        default:
+            LogExit("Comunication Error");
         }
-        printf("Cliente: %s", buf);
-        printf("Cliente: %s", buf);
-        printf("Servidor: ");
-        send(clientSocket, buf, strlen(buf), 0);
+        
+        printf("%s\n", mainMessage.message);
+
     }
 
     exit(EXIT_SUCCESS);

@@ -44,25 +44,32 @@ int main(int argc, char **argv) {
     printf("Conectado ao servidor\n");
 
     char buf[BUFSZ];
-
+    GameMessage mainMessage;
     memset(buf, 0, BUFSZ);
     unsigned total = 0;
     while (1) {
-
-        printf("Você: ");
-        if (!fgets(buf, BUFSZ, stdin))
+        recv(s, &mainMessage, BUFSZ - 1, 0);
+        printf("%s\n", mainMessage.message);
+        switch (mainMessage.type) {
+        case 0:
+            char action[10];
+            fgets(action, 10, stdin);
+            mainMessage.client_action = atoi(action);
+            mainMessage.type = MSG_RESPONSE;
             break;
-
-        send(s, buf, strlen(buf), 0);
-        if (strncmp(buf, "exit", 4) == 0)
+        case 2:
             break;
-
-        memset(buf, 0, BUFSZ);
-        ssize_t count = recv(s, buf, BUFSZ - 1, 0);
-        if (count <= 0) {
-            LogExit("recv");
+        case 3:
+            break;
+        case 5:
+            break;
+        case 6:
+            break;
+        default:
+            LogExit("Comunication Error");
         }
-        printf("Servidor: %s", buf);
+        EnumToString(&mainMessage);
+        send(s, &mainMessage, BUFSZ - 1, 0);
     }
     close(s);
 

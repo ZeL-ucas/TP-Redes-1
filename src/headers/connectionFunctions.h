@@ -29,6 +29,7 @@ typedef struct {
     int server_wins;  
     char message[MSG_SIZE]; 
 } GameMessage;
+
 void LogExit(char *msg);
 
 int AddrParser(const char *addrstring, const char *portstr,
