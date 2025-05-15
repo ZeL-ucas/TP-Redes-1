@@ -30,8 +30,8 @@ int main(int argc, char **argv) {
         LogExit("socket");
     }
     // permite reutilizar o endereço mesmo c ja tiver sido usado
-    int enable = 1; 
-    if(setsockopt(s,SOL_SOCKET,SO_REUSEADDR, &enable, sizeof(int))!=0){
+    int enable = 1;
+    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) != 0) {
         LogExit("setsocketopt");
     }
 
@@ -47,34 +47,32 @@ int main(int argc, char **argv) {
 
     char addrstr[BUFSZ];
     AddrToString(addr, addrstr, BUFSZ);
-    printf("bound, to %s, waiting connection\n", addrstr);
+    printf(
+        "Servidor iniciado em modo IP%s na porta %s. Aguardando conexão...\n",
+        argv[1], argv[2]);
+    struct sockaddr_storage clientStorage;
+    struct sockaddr *clientAddr = (struct sockaddr *)(&storage);
+    socklen_t clientAddrLen = sizeof(clientStorage);
+    // s = nosso socket
+    // clientAddr = endereço do cliente que a funçao sabe de onde veio
+    // retorna o socket do cliente
+    int clientSocket = accept(s, clientAddr, &clientAddrLen);
+    if (clientSocket == -1) {
+        LogExit("accept");
+    }
+    printf("Client Conectado\n");
+    char buf[BUFSIZ];
     while (1) {
-        struct sockaddr_storage clientStorage;
-        struct sockaddr *clientAddr = (struct sockaddr *)(&storage);
-        socklen_t clientAddrLen = sizeof(clientStorage);
-        // s = nosso socket
-        // clientAddr = endereço do cliente que a funçao sabe de onde veio
-        // retorna o socket do cliente
-        int clientSocket = accept(s, clientAddr, &clientAddrLen);
-        if (clientSocket == -1) {
-            LogExit("accept");
+
+        memset(buf, 0, BUFSZ);
+        ssize_t count = recv(clientSocket, buf, BUFSZ - 1, 0);
+        if (count <= 0) {
+            LogExit("recv");
         }
-        char clientAddrstr[BUFSZ];
-        AddrToString(clientAddr, clientAddrstr, BUFSZ);
-        printf("connection, from %s, \n", clientAddrstr);
-
-        char buf[BUFSIZ];
-        memset(buf, 0, BUFSIZ);
-        size_t count = recv(clientSocket, buf, BUFSIZ - 1, 0);
-
-        printf("[msg] %s, %d bytes : %s\n", clientAddrstr, (int)count, buf);
-
-        sprintf(buf, "remote endpoint: %.1000s\n", clientAddrstr);
-        count = send(clientSocket, buf, (strlen(buf) + 1), 0);
-        if (count != strlen(buf) + 1) {
-            LogExit("send");
-        }
-        close(clientSocket);
+        printf("Cliente: %s", buf);
+        printf("Cliente: %s", buf);
+        printf("Servidor: ");
+        send(clientSocket, buf, strlen(buf), 0);
     }
 
     exit(EXIT_SUCCESS);

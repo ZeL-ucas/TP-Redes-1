@@ -41,28 +41,28 @@ int main(int argc, char **argv) {
     char addrstr[BUFSZ];
     AddrToString(addr, addrstr, BUFSZ);
 
-    printf("connected to %s\n", addrstr);
+    printf("Conectado ao servidor\n");
 
     char buf[BUFSZ];
-    memset(buf, 0, BUFSZ);
-    printf("mensagens >> \n");
-    fgets(buf, BUFSZ - 1, stdin);
-
-    size_t count = send(s, buf, strlen(buf) + 1, 0);
-
-    if (count != strlen(buf) + 1) {
-        LogExit("send");
-    }
 
     memset(buf, 0, BUFSZ);
     unsigned total = 0;
     while (1) {
-        count = recv(s, buf + total, BUFSZ - total, 0);
 
-        if (count == 0) {
+        printf("Você: ");
+        if (!fgets(buf, BUFSZ, stdin))
             break;
+
+        send(s, buf, strlen(buf), 0);
+        if (strncmp(buf, "exit", 4) == 0)
+            break;
+
+        memset(buf, 0, BUFSZ);
+        ssize_t count = recv(s, buf, BUFSZ - 1, 0);
+        if (count <= 0) {
+            LogExit("recv");
         }
-        total += count;
+        printf("Servidor: %s", buf);
     }
     close(s);
 
