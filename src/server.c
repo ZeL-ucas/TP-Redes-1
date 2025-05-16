@@ -65,32 +65,63 @@ int main(int argc, char **argv) {
     printf("Cliente Conectado\n");
     printf("Apresentando as opções para o cliente.\n");
     GameMessage mainMessage;
-    mainMessage.type = MSG_REQUEST;
-
+    InitializateMainMessage(&mainMessage);
+    StartGame(clientSocket, &mainMessage);
     while (1) {
-        EnumToString(&mainMessage);
-        send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
-
-        recv(clientSocket, &mainMessage, BUFSZ - 1, 0);
         switch (mainMessage.type) {
         case 1:
+
             if (!(mainMessage.client_action <= 4 &&
                   mainMessage.client_action >= 0)) {
-                BuildErrorMessageResponse();
+                // BuildErrorMessageResponse();
+                break;
             };
-
+            printf("%s\n", mainMessage.message);
+            mainMessage.result = PlayGame(&mainMessage);
+            mainMessage.type = MSG_RESULT;
+            EnumToString(&mainMessage);
+            if (mainMessage.result == 0) {
+                strcat(mainMessage.message, "Resultado: Empate!");
+            } else if (mainMessage.result == -1) {
+                strcat(mainMessage.message, "Resultado: Vitoria!");
+                mainMessage.client_wins++;
+            } else {
+                strcat(mainMessage.message, "Resultado: Derrota!");
+                mainMessage.server_wins++;
+            }
+            printf("Placar atualizado: Cliente %d x %d Servidor \n",
+                   mainMessage.client_wins, mainMessage.server_wins);
+            send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+            mainMessage.type = MSG_PLAY_AGAIN_REQUEST;
+            printf("Perguntando se o cliente deseja jogar novamente.\n");
+            EnumToString(&mainMessage);
+            send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+            recv(clientSocket, &mainMessage, sizeof(GameMessage), 0);
             break;
+
         case 4:
+
             if (!(mainMessage.client_action <= 1 &&
                   mainMessage.client_action >= 0)) {
-                BuildErrorMessageResponse();
+                // BuildErrorMessageResponse();
             };
+            EnumToString(&mainMessage);
+            printf("%s\n", mainMessage.message);
+            if (mainMessage.client_action == 0) {
+                mainMessage.type = MSG_END;
+                EnumToString(&mainMessage);
+                printf("Enviando placar final.\n");
+                send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+                printf("Encerrando conexão.\n");
+                close(clientSocket);
+                printf("Cliente desconectado.\n");
+            } else {
+                StartGame(clientSocket, &mainMessage);
+            }
             break;
         default:
-            LogExit("Comunication Error");
+            break;
         }
-
-        printf("%s\n", mainMessage.message);
     }
 
     exit(EXIT_SUCCESS);

@@ -1,6 +1,8 @@
 #include "../headers/gameFunctions.h"
 
 void EnumToString(GameMessage *currentMessage) {
+    const char *gameArray[] = {"Nuclear Attack", "Intercept Attack",
+                               "Cyber Attack", "Drone Strike", "Bio Attack"};
     switch (currentMessage->type) {
     case 0:
         strcpy(currentMessage->message,
@@ -18,13 +20,22 @@ void EnumToString(GameMessage *currentMessage) {
 
         break;
     case 2:
-        strcpy(currentMessage->message, "Mensagem para MSG_REQUEST");
+        sprintf(currentMessage->message,
+                "Você escolheu: %s\nServidor escolheu: %s\n",
+                gameArray[currentMessage->client_action],
+                gameArray[currentMessage->server_action]);
         break;
     case 3:
-        strcpy(currentMessage->message, "Mensagem para MSG_REQUEST");
+        strcpy(currentMessage->message,
+               "Deseja jogar novamente?\n1- Sim\n0-Nao");
         break;
     case 4:
-        strcpy(currentMessage->message, "Mensagem para MSG_REQUEST");
+        if (currentMessage->client_action == 0) {
+            strcpy(currentMessage->message,
+                   "Cliente não deseja jogar novamente");
+        } else {
+            strcpy(currentMessage->message, "Cliente deseja jogar novamente.");
+        }
         break;
     case 5:
         strcpy(currentMessage->message, "Mensagem para MSG_REQUEST");
@@ -34,12 +45,69 @@ void EnumToString(GameMessage *currentMessage) {
         char serverWinsToString[10];
         sprintf(clientWinsToString, "%d", currentMessage->client_wins);
         sprintf(serverWinsToString, "%d", currentMessage->server_wins);
-        strcpy(currentMessage->message, "Mensagem para MSG_REQUEST");
+        sprintf(currentMessage->message,
+                "Fim de jogo!\nPlacar final: Você %d x %d Servidor\nObrigado "
+                "por jogar!",
+                currentMessage->client_wins, currentMessage->server_wins);
         break;
     }
 }
 
-void PlayGame(GameMessage *message) {
-    int serverNumber = rand() %5;
+int PlayGame(GameMessage *mainMessage) {
+    int serverNumber = rand() % 5;
+    printf("Servidor escolheu aleatoriamente %d\n", serverNumber);
+    mainMessage->server_action = serverNumber;
+    // checa empate
+    if (serverNumber != mainMessage->client_action) {
+        if (CheckWinner(serverNumber, mainMessage->client_action)) {
+            return 1;
+        } else {
+            return -1;
+        };
 
+    } else {
+        return 0;
+    }
 }
+
+int CheckWinner(int server, int player) {
+    int winner;
+    switch (server) {
+    case 0:
+        winner = (player != 1 && player != 4);
+        break;
+    case 1:
+        winner = (player != 2 && player != 3);
+
+        break;
+    case 2:
+        winner = (player != 0 && player != 4);
+        break;
+    case 3:
+        winner = (player != 0 && player != 2);
+        break;
+    case 4:
+        winner = (player != 1 && player != 3);
+        break;
+    }
+    return winner;
+}
+
+void InitializateMainMessage(GameMessage *mainMessage) {
+    mainMessage->client_action = 0;
+    mainMessage->server_action = 0;
+    mainMessage->client_wins = 0;
+    mainMessage->server_wins = 0;
+    mainMessage->result = 0;
+    mainMessage->type = 0;
+    strcpy(mainMessage->message, "0");
+};
+
+void StartGame(int clientSocket, GameMessage *mainMessage) {
+    mainMessage->type = MSG_REQUEST;
+    EnumToString(mainMessage);
+    send(clientSocket, mainMessage, sizeof(GameMessage), 0);
+    recv(clientSocket, mainMessage, sizeof(GameMessage), 0);
+    EnumToString(mainMessage);
+    return;
+};

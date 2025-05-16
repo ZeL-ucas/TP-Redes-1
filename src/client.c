@@ -46,34 +46,45 @@ int main(int argc, char **argv) {
     char buf[BUFSZ];
     GameMessage mainMessage;
     memset(buf, 0, BUFSZ);
-    unsigned total = 0;
-    while (1) {
-        recv(s, &mainMessage, BUFSZ - 1, 0);
-        printf("%s\n", mainMessage.message);
+
+    recv(s, &mainMessage, sizeof(mainMessage), 0);
+    int gameRunning = 1;
+    while (gameRunning) {
+
         switch (mainMessage.type) {
         case 0:
+            printf("%s\n", mainMessage.message);
             char action[10];
             fgets(action, 10, stdin);
             mainMessage.client_action = atoi(action);
             mainMessage.type = MSG_RESPONSE;
+            send(s, &mainMessage, sizeof(mainMessage), 0);
+            recv(s, &mainMessage, sizeof(mainMessage), 0);
             break;
         case 2:
+            printf("%s\n", mainMessage.message);
+            recv(s, &mainMessage, sizeof(mainMessage), 0);
             break;
         case 3:
+            printf("%s\n", mainMessage.message);
+            fgets(action, 10, stdin);
+            mainMessage.client_action = atoi(action);
+            mainMessage.type = 4;
+            send(s, &mainMessage, sizeof(mainMessage), 0);
+            recv(s, &mainMessage, sizeof(mainMessage), 0);
             break;
         case 5:
+            printf("%s\n", mainMessage.message);
             break;
         case 6:
+            printf("%s\n", mainMessage.message);
+            close(s);
+            gameRunning = 0;
             break;
         default:
             LogExit("Comunication Error");
         }
-        EnumToString(&mainMessage);
-        send(s, &mainMessage, BUFSZ - 1, 0);
     }
-    close(s);
 
-    printf("receive %d bytes \n", total);
-    puts(buf);
     exit(EXIT_SUCCESS);
 }
