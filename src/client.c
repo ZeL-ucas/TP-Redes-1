@@ -56,25 +56,34 @@ int main(int argc, char **argv) {
             printf("%s\n", mainMessage.message);
             char action[10];
             fgets(action, 10, stdin);
+
             mainMessage.client_action = atoi(action);
             mainMessage.type = MSG_RESPONSE;
+
             send(s, &mainMessage, sizeof(mainMessage), 0);
             recv(s, &mainMessage, sizeof(mainMessage), 0);
+
             break;
         case 2:
+
             printf("%s\n", mainMessage.message);
             recv(s, &mainMessage, sizeof(mainMessage), 0);
+
             break;
         case 3:
             printf("%s\n", mainMessage.message);
             fgets(action, 10, stdin);
+
             mainMessage.client_action = atoi(action);
             mainMessage.type = 4;
+
             send(s, &mainMessage, sizeof(mainMessage), 0);
             recv(s, &mainMessage, sizeof(mainMessage), 0);
+
             break;
         case 5:
             printf("%s\n", mainMessage.message);
+            recv(s, &mainMessage, sizeof(mainMessage), 0);
             break;
         case 6:
             printf("%s\n", mainMessage.message);

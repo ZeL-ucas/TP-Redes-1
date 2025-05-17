@@ -37,9 +37,6 @@ void EnumToString(GameMessage *currentMessage) {
             strcpy(currentMessage->message, "Cliente deseja jogar novamente.");
         }
         break;
-    case 5:
-        strcpy(currentMessage->message, "Mensagem para MSG_REQUEST");
-        break;
     case 6:
         char clientWinsToString[10];
         char serverWinsToString[10];
@@ -111,3 +108,17 @@ void StartGame(int clientSocket, GameMessage *mainMessage) {
     EnumToString(mainMessage);
     return;
 };
+
+void CreateErrorMessage(int clientSocket, GameMessage *mainMessage,
+                        char *errorMessage, int newMessage) {
+    mainMessage->type = MSG_ERROR;
+    strcpy(mainMessage->message, errorMessage);
+    send(clientSocket, mainMessage, sizeof(GameMessage), 0);
+    if (newMessage == 0) {
+        StartGame(clientSocket, mainMessage);
+        return;
+    }
+    mainMessage->type = newMessage;
+    EnumToString(mainMessage);
+    send(clientSocket, mainMessage, sizeof(GameMessage), 0);
+}

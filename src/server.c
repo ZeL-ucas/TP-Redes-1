@@ -64,46 +64,62 @@ int main(int argc, char **argv) {
     }
     printf("Cliente Conectado\n");
     printf("Apresentando as opções para o cliente.\n");
+    int connection = 1;
     GameMessage mainMessage;
     InitializateMainMessage(&mainMessage);
     StartGame(clientSocket, &mainMessage);
-    while (1) {
+    while (connection) {
         switch (mainMessage.type) {
         case 1:
-
+            printf("%s\n", mainMessage.message);
             if (!(mainMessage.client_action <= 4 &&
                   mainMessage.client_action >= 0)) {
-                // BuildErrorMessageResponse();
+                printf("Erro: opção inválida de jogada.\n");
+                CreateErrorMessage(clientSocket, &mainMessage,
+                                   "Por favor, selecione um valor de 0 a 4",
+                                   MSG_REQUEST);
                 break;
             };
-            printf("%s\n", mainMessage.message);
+
             mainMessage.result = PlayGame(&mainMessage);
             mainMessage.type = MSG_RESULT;
             EnumToString(&mainMessage);
             if (mainMessage.result == 0) {
+                printf("Jogo empatado.\n");
                 strcat(mainMessage.message, "Resultado: Empate!");
-            } else if (mainMessage.result == -1) {
-                strcat(mainMessage.message, "Resultado: Vitoria!");
-                mainMessage.client_wins++;
+                send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+                printf("Solicitando ao cliente mais uma escolha.\n");
+                StartGame(clientSocket, &mainMessage);
             } else {
-                strcat(mainMessage.message, "Resultado: Derrota!");
-                mainMessage.server_wins++;
+                if (mainMessage.result == -1) {
+                    strcat(mainMessage.message, "Resultado: Vitoria!");
+                    mainMessage.client_wins++;
+                } else {
+                    strcat(mainMessage.message, "Resultado: Derrota!");
+                    mainMessage.server_wins++;
+                }
+                printf("Placar atualizado: Cliente %d x %d Servidor \n",
+                       mainMessage.client_wins, mainMessage.server_wins);
+                send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+                mainMessage.type = MSG_PLAY_AGAIN_REQUEST;
+                printf("Perguntando se o cliente deseja jogar novamente.\n");
+                EnumToString(&mainMessage);
+                send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+                recv(clientSocket, &mainMessage, sizeof(GameMessage), 0);
             }
-            printf("Placar atualizado: Cliente %d x %d Servidor \n",
-                   mainMessage.client_wins, mainMessage.server_wins);
-            send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
-            mainMessage.type = MSG_PLAY_AGAIN_REQUEST;
-            printf("Perguntando se o cliente deseja jogar novamente.\n");
-            EnumToString(&mainMessage);
-            send(clientSocket, &mainMessage, sizeof(GameMessage), 0);
-            recv(clientSocket, &mainMessage, sizeof(GameMessage), 0);
             break;
 
         case 4:
 
             if (!(mainMessage.client_action <= 1 &&
                   mainMessage.client_action >= 0)) {
-                // BuildErrorMessageResponse();
+                printf("Erro: resposta inválida para jogar novamente.\n");
+                CreateErrorMessage(clientSocket, &mainMessage,
+                                   "Por favor, digite 1 para jogar novamente "
+                                   "ou 0 para encerrar.",
+                                   MSG_PLAY_AGAIN_REQUEST);
+                recv(clientSocket, &mainMessage, sizeof(GameMessage), 0);
+                break;
             };
             EnumToString(&mainMessage);
             printf("%s\n", mainMessage.message);
@@ -115,6 +131,7 @@ int main(int argc, char **argv) {
                 printf("Encerrando conexão.\n");
                 close(clientSocket);
                 printf("Cliente desconectado.\n");
+                connection = 0;
             } else {
                 StartGame(clientSocket, &mainMessage);
             }
@@ -123,6 +140,6 @@ int main(int argc, char **argv) {
             break;
         }
     }
-
+    close(s);
     exit(EXIT_SUCCESS);
 }

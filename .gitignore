@@ -4,3 +4,4 @@ server
 /build/
 bin/
 obj/
+doxygen
