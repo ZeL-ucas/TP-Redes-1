@@ -49,6 +49,8 @@ int main(int argc, char **argv) {
 
     recv(s, &mainMessage, sizeof(mainMessage), 0);
     int gameRunning = 1;
+    // diferente do servidor, cada opçao do switch simplesmente serve para mexer
+    // na ordem dos "send e recv", com poucas açoes sendo tomadas desse lado
     while (gameRunning) {
 
         switch (mainMessage.type) {

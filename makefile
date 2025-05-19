@@ -11,8 +11,8 @@ clean:
 	rm -rf src/obj/
 
 run: all
-	gnome-terminal -- bash -c "./bin/server v4 51511; exec bash"
-	gnome-terminal -- bash -c "./bin/client 127.0.0.1 51511; exec bash"
+	gnome-terminal -- bash -c "./bin/server v6 51511; exec bash"
+	gnome-terminal -- bash -c "./bin/client ::0 51511; exec bash"
 
 clang:
 	clang-format -i ./src/client.c

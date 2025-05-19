@@ -68,9 +68,15 @@ int main(int argc, char **argv) {
     GameMessage mainMessage;
     InitializateMainMessage(&mainMessage);
     StartGame(clientSocket, &mainMessage);
+    // switch que checa qual mensagem chegou e realiza as computaçoes
+    // necessarias para o fluxo do jogo
     while (connection) {
         switch (mainMessage.type) {
+
         case 1:
+            // checa se o numero é valido, caso nao seja manda a mensagem de
+            // erro e reinicia a rodada de ataque mandando as opçoes denovo ao
+            // cliente
             printf("%s\n", mainMessage.message);
             if (!(mainMessage.client_action <= 4 &&
                   mainMessage.client_action >= 0)) {
@@ -84,6 +90,9 @@ int main(int argc, char **argv) {
             mainMessage.result = PlayGame(&mainMessage);
             mainMessage.type = MSG_RESULT;
             EnumToString(&mainMessage);
+            // depois de gerar o numero verifica, caso seja empate reenvia a
+            // lista de opçoes ao cliente, caso contrario soma ao placar e
+            // pergunta se o cliente quer jogar denovo
             if (mainMessage.result == 0) {
                 printf("Jogo empatado.\n");
                 strcat(mainMessage.message, "Resultado: Empate!");
@@ -110,7 +119,8 @@ int main(int argc, char **argv) {
             break;
 
         case 4:
-
+            // checa se o numero e valido e pede ao cliente pra digitar
+            // novamente caso nao seja
             if (!(mainMessage.client_action <= 1 &&
                   mainMessage.client_action >= 0)) {
                 printf("Erro: resposta inválida para jogar novamente.\n");
@@ -123,6 +133,8 @@ int main(int argc, char **argv) {
             };
             EnumToString(&mainMessage);
             printf("%s\n", mainMessage.message);
+            // caso cliente nao queira jogar, manda o placar atualizado e fecha
+            // a conexao tanto do cliente quanto do servidor
             if (mainMessage.client_action == 0) {
                 mainMessage.type = MSG_END;
                 EnumToString(&mainMessage);
@@ -133,6 +145,7 @@ int main(int argc, char **argv) {
                 printf("Cliente desconectado.\n");
                 connection = 0;
             } else {
+                // caso ele queira jogar reinicia o fluxo desde o começo
                 StartGame(clientSocket, &mainMessage);
             }
             break;

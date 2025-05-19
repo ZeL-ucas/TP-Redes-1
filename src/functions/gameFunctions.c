@@ -14,7 +14,7 @@ void EnumToString(GameMessage *currentMessage) {
         char temp[256];
 
         sprintf(intToString, "%d", currentMessage->client_action);
-        strcpy(temp, "Client Escolheu ");
+        strcpy(temp, "Cliente Escolheu ");
         strcat(temp, intToString);
         strcpy(currentMessage->message, temp);
 
